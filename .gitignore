@@ -3,5 +3,5 @@ composer.lock
 .phpunit.result.cache
 .php-cs-fixer.cache
 .idea/
-phpunit.xml
+/phpunit.xml
 .php-version

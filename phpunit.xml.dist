@@ -6,6 +6,7 @@
     <testsuites>
         <testsuite name="default">
             <directory>tests</directory>
+            <exclude>tests/Integration/Fixtures</exclude>
         </testsuite>
     </testsuites>
 </phpunit>
