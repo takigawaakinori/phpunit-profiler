@@ -3,6 +3,11 @@
     "description": "A PHPUnit extension that profiles and reports the slowest tests",
     "type": "phpunit-extension",
     "license": "MIT",
+    "keywords": [
+        "phpunit",
+        "xunit",
+        "testing"
+    ],
     "require": {
         "php": "^8.1",
         "phpunit/phpunit": "^10.0 || ^11.0 || ^12.0 || ^13.0"
