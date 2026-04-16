@@ -19,16 +19,12 @@ final class TestProfilerExtension implements Extension
 {
     public function bootstrap(Configuration $configuration, Facade $facade, ParameterCollection $parameters): void
     {
-        $topCount = $parameters->has('topCount')
-            ? (int) $parameters->get('topCount')
-            : null;
+        $topCount = $this->resolveTopCount($parameters);
         $showTopN = ! ($parameters->has('showTopN')
             && $parameters->get('showTopN') === 'false');
         $showPareto = $parameters->has('showPareto')
             && $parameters->get('showPareto') === 'true';
-        $slowThreshold = $parameters->has('slowThreshold')
-            ? (float) $parameters->get('slowThreshold')
-            : null;
+        $slowThreshold = $this->resolveSlowThreshold($parameters);
         $jsonOutput = $parameters->has('jsonOutput')
             ? $parameters->get('jsonOutput')
             : null;
@@ -36,7 +32,7 @@ final class TestProfilerExtension implements Extension
         $collector = new TestTimeCollector();
         $jsonWriter = $jsonOutput !== null ? new JsonResultWriter($jsonOutput) : null;
         $outputter = new TestDurationOutputter(
-            topCount: $topCount ?? TestDurationOutputter::DEFAULT_TOP_COUNT,
+            topCount: $topCount,
             showTopN: $showTopN,
             showPareto: $showPareto,
             slowThreshold: $slowThreshold,
@@ -81,5 +77,38 @@ final class TestProfilerExtension implements Extension
                 }
             },
         );
+    }
+
+    private function resolveTopCount(ParameterCollection $parameters): int
+    {
+        if (! $parameters->has('topCount')) {
+            return TestDurationOutputter::DEFAULT_TOP_COUNT;
+        }
+
+        $rawTopCount = $parameters->get('topCount');
+        if (! is_numeric($rawTopCount)) {
+            return TestDurationOutputter::DEFAULT_TOP_COUNT;
+        }
+
+        $topCount = (int) $rawTopCount;
+        if ($topCount < 1) {
+            return TestDurationOutputter::DEFAULT_TOP_COUNT;
+        }
+
+        return $topCount;
+    }
+
+    private function resolveSlowThreshold(ParameterCollection $parameters): ?float
+    {
+        if (! $parameters->has('slowThreshold')) {
+            return null;
+        }
+
+        $rawSlowThreshold = $parameters->get('slowThreshold');
+        if (! is_numeric($rawSlowThreshold)) {
+            return null;
+        }
+
+        return (float) $rawSlowThreshold;
     }
 }
