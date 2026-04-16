@@ -31,7 +31,7 @@ final class TestDurationResultCollection implements IteratorAggregate, Countable
     {
         return new self(...array_filter(
             $this->results,
-            fn (TestDurationResult $r) => $r->durationInSeconds >= $thresholdInSeconds,
+            fn(TestDurationResult $r) => $r->durationInSeconds >= $thresholdInSeconds,
         ));
     }
 
