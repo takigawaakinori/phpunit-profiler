@@ -72,4 +72,21 @@ class TestDurationResultCollectionTest extends TestCase
 
         $this->assertCount(2, $collection);
     }
+
+    public function test_slower_than_filters_by_threshold(): void
+    {
+        $collection = new TestDurationResultCollection(
+            new TestDurationResult('test_slow', 5.0),
+            new TestDurationResult('test_medium', 1.0),
+            new TestDurationResult('test_fast', 0.1),
+        );
+
+        $slow = $collection->slowerThan(1.0);
+
+        $this->assertCount(2, $slow);
+
+        $items = iterator_to_array($slow);
+        $this->assertSame('test_slow', $items[0]->testId);
+        $this->assertSame('test_medium', $items[1]->testId);
+    }
 }

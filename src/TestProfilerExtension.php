@@ -22,11 +22,20 @@ final class TestProfilerExtension implements Extension
         $topCount = $parameters->has('topCount')
             ? (int) $parameters->get('topCount')
             : null;
+        $showPareto = $parameters->has('showPareto')
+            && $parameters->get('showPareto') === 'true';
+        $slowThreshold = $parameters->has('slowThreshold')
+            ? (float) $parameters->get('slowThreshold')
+            : null;
 
         $collector = new TestTimeCollector();
-        $outputter = $topCount !== null
-            ? new TestDurationOutputter($topCount)
-            : new TestDurationOutputter();
+        $outputter = new TestDurationOutputter(
+            ...array_filter([
+                'topCount' => $topCount,
+                'showPareto' => $showPareto ?: null,
+                'slowThreshold' => $slowThreshold,
+            ], fn ($v) => $v !== null),
+        );
 
         $facade->registerSubscribers(
             new class ($collector) implements PreparedSubscriber {
@@ -60,7 +69,7 @@ final class TestProfilerExtension implements Extension
                 public function notify(ExecutionFinished $event): void
                 {
                     $results = $this->collector->getResults();
-                    $this->outputter->printTopN($results);
+                    $this->outputter->print($results);
                 }
             },
         );
