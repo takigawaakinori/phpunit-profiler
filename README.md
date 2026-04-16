@@ -4,6 +4,8 @@ A PHPUnit extension that profiles test execution time and reports the slowest te
 
 Supports PHPUnit 10, 11, 12, and 13.
 
+日本語版はこちら: [README.ja.md](README.ja.md)
+
 ## Installation
 
 ```bash
@@ -43,6 +45,12 @@ You can customize the extension behavior by adding `<parameter>` elements:
 | `showPareto` | bool | `false` | Show Pareto analysis (top 20% of tests and their share of total execution time) |
 | `slowThreshold` | float | _(disabled)_ | Show tests slower than the specified threshold in seconds |
 | `jsonOutput` | string | _(disabled)_ | File path to export all test durations as JSON |
+
+### Invalid Parameter Values
+
+- `topCount`: If the value is non-numeric or less than `1`, it falls back to the default `20`.
+- `slowThreshold`: If the value is non-numeric, threshold filtering is disabled.
+- `showTopN` / `showPareto`: These are string-based flags. Use `true` or `false` exactly.
 
 ## Output Examples
 
