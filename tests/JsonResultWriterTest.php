@@ -57,4 +57,47 @@ class JsonResultWriterTest extends TestCase
 
         $this->assertSame([], $data);
     }
+
+    public function test_reports_error_when_json_encoding_fails(): void
+    {
+        $results = new TestDurationResultCollection(
+            new TestDurationResult('App\\Tests\\FooTest::test_invalid_number', NAN),
+        );
+
+        $errors = [];
+        $writer = new JsonResultWriter(
+            $this->outputPath,
+            static function (string $message) use (&$errors): void {
+                $errors[] = $message;
+            },
+        );
+
+        $writer->write($results);
+
+        $this->assertCount(1, $errors);
+        $this->assertStringContainsString('Failed to encode JSON', $errors[0]);
+        $this->assertFileDoesNotExist($this->outputPath);
+    }
+
+    public function test_reports_error_when_file_write_fails(): void
+    {
+        $results = new TestDurationResultCollection(
+            new TestDurationResult('App\\Tests\\FooTest::test_slow', 1.234),
+        );
+
+        $invalidPath = sys_get_temp_dir() . '/phpunit-profile-nonexistent-dir-' . uniqid() . '/result.json';
+        $errors = [];
+        $writer = new JsonResultWriter(
+            $invalidPath,
+            static function (string $message) use (&$errors): void {
+                $errors[] = $message;
+            },
+        );
+
+        $writer->write($results);
+
+        $this->assertCount(1, $errors);
+        $this->assertStringContainsString('Failed to write JSON output', $errors[0]);
+        $this->assertFileDoesNotExist($invalidPath);
+    }
 }
