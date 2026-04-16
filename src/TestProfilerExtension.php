@@ -22,19 +22,24 @@ final class TestProfilerExtension implements Extension
         $topCount = $parameters->has('topCount')
             ? (int) $parameters->get('topCount')
             : null;
+        $showTopN = ! ($parameters->has('showTopN')
+            && $parameters->get('showTopN') === 'false');
         $showPareto = $parameters->has('showPareto')
             && $parameters->get('showPareto') === 'true';
         $slowThreshold = $parameters->has('slowThreshold')
             ? (float) $parameters->get('slowThreshold')
             : null;
+        $jsonOutput = $parameters->has('jsonOutput')
+            ? $parameters->get('jsonOutput')
+            : null;
 
         $collector = new TestTimeCollector();
+        $jsonWriter = $jsonOutput !== null ? new JsonResultWriter($jsonOutput) : null;
         $outputter = new TestDurationOutputter(
-            ...array_filter([
-                'topCount' => $topCount,
-                'showPareto' => $showPareto ?: null,
-                'slowThreshold' => $slowThreshold,
-            ], fn ($v) => $v !== null),
+            topCount: $topCount ?? TestDurationOutputter::DEFAULT_TOP_COUNT,
+            showTopN: $showTopN,
+            showPareto: $showPareto,
+            slowThreshold: $slowThreshold,
         );
 
         $facade->registerSubscribers(
@@ -60,16 +65,19 @@ final class TestProfilerExtension implements Extension
                     );
                 }
             },
-            new class ($collector, $outputter) implements ExecutionFinishedSubscriber {
+            new class ($collector, $outputter, $jsonWriter) implements ExecutionFinishedSubscriber {
                 public function __construct(
                     private readonly TestTimeCollector $collector,
                     private readonly TestDurationOutputter $outputter,
+                    private readonly ?JsonResultWriter $jsonWriter,
                 ) {}
 
                 public function notify(ExecutionFinished $event): void
                 {
                     $results = $this->collector->getResults();
                     $this->outputter->print($results);
+
+                    $this->jsonWriter?->write($results);
                 }
             },
         );
