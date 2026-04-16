@@ -6,15 +6,39 @@ namespace TakigawaAkinori\PhpunitProfiler;
 
 final class TestDurationOutputter
 {
-    public function printTop20(TestDurationResultCollection $results): void
+    public const DEFAULT_TOP_COUNT = 20;
+
+    public function __construct(
+        private readonly int $topCount = self::DEFAULT_TOP_COUNT,
+        private readonly bool $showTopN = true,
+        private readonly bool $showPareto = false,
+        private readonly ?float $slowThreshold = null,
+    ) {}
+
+    public function print(TestDurationResultCollection $results): void
+    {
+        if ($this->showTopN) {
+            $this->printTopN($results);
+        }
+
+        if ($this->showPareto) {
+            $this->printPareto($results);
+        }
+
+        if ($this->slowThreshold !== null) {
+            $this->printSlowThreshold($results);
+        }
+    }
+
+    public function printTopN(TestDurationResultCollection $results): void
     {
         if ($results->isEmpty()) {
             return;
         }
 
-        $top = $results->top(20);
+        $top = $results->top($this->topCount);
 
-        echo PHP_EOL . 'Top 20 Slowest Tests:' . PHP_EOL;
+        echo PHP_EOL . sprintf('Top %d Slowest Tests:', $this->topCount) . PHP_EOL;
         echo str_repeat('-', 80) . PHP_EOL;
 
         $rank = 1;
@@ -63,6 +87,35 @@ final class TestDurationOutputter
                 $result->testId,
             ) . PHP_EOL;
             $rank++;
+        }
+
+        echo str_repeat('-', 80) . PHP_EOL;
+    }
+
+    public function printSlowThreshold(TestDurationResultCollection $results): void
+    {
+        if ($results->isEmpty() || $this->slowThreshold === null) {
+            return;
+        }
+
+        $slow = $results->slowerThan($this->slowThreshold);
+
+        echo PHP_EOL . sprintf('Tests slower than %.3fs:', $this->slowThreshold) . PHP_EOL;
+        echo str_repeat('-', 80) . PHP_EOL;
+
+        if ($slow->isEmpty()) {
+            echo '  (none)' . PHP_EOL;
+        } else {
+            $rank = 1;
+            foreach ($slow as $result) {
+                echo sprintf(
+                    ' %2d. %6.3fs  %s',
+                    $rank,
+                    $result->durationInSeconds,
+                    $result->testId,
+                ) . PHP_EOL;
+                $rank++;
+            }
         }
 
         echo str_repeat('-', 80) . PHP_EOL;

@@ -27,6 +27,14 @@ final class TestDurationResultCollection implements IteratorAggregate, Countable
         return new self(...array_slice($this->results, 0, $n));
     }
 
+    public function slowerThan(float $thresholdInSeconds): self
+    {
+        return new self(...array_filter(
+            $this->results,
+            fn(TestDurationResult $r) => $r->durationInSeconds >= $thresholdInSeconds,
+        ));
+    }
+
     public function topPercentile(int $percentile): self
     {
         $count = (int) ceil(count($this->results) * $percentile / 100);
