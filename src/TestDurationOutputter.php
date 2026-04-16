@@ -6,17 +6,20 @@ namespace TakigawaAkinori\PhpunitProfiler;
 
 final class TestDurationOutputter
 {
-    private const DEFAULT_TOP_COUNT = 20;
+    public const DEFAULT_TOP_COUNT = 20;
 
     public function __construct(
         private readonly int $topCount = self::DEFAULT_TOP_COUNT,
+        private readonly bool $showTopN = true,
         private readonly bool $showPareto = false,
         private readonly ?float $slowThreshold = null,
     ) {}
 
     public function print(TestDurationResultCollection $results): void
     {
-        $this->printTopN($results);
+        if ($this->showTopN) {
+            $this->printTopN($results);
+        }
 
         if ($this->showPareto) {
             $this->printPareto($results);

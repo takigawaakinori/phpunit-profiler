@@ -98,6 +98,36 @@ class TestDurationOutputterTest extends TestCase
         $this->assertStringContainsString('2 / 10', $output);
     }
 
+    public function test_print_hides_topN_when_disabled(): void
+    {
+        $results = new TestDurationResultCollection(
+            new TestDurationResult('Test::test_a', 1.0),
+        );
+
+        $outputter = new TestDurationOutputter(showTopN: false);
+
+        ob_start();
+        $outputter->print($results);
+        $output = ob_get_clean();
+
+        $this->assertStringNotContainsString('Slowest Tests', $output);
+    }
+
+    public function test_print_shows_topN_by_default(): void
+    {
+        $results = new TestDurationResultCollection(
+            new TestDurationResult('Test::test_a', 1.0),
+        );
+
+        $outputter = new TestDurationOutputter();
+
+        ob_start();
+        $outputter->print($results);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('Top 20 Slowest Tests', $output);
+    }
+
     public function test_print_shows_pareto_when_enabled(): void
     {
         $results = new TestDurationResultCollection(
