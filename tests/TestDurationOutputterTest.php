@@ -21,10 +21,10 @@ class TestDurationOutputterTest extends TestCase
         $outputter = new TestDurationOutputter();
 
         ob_start();
-        $outputter->printTop20($results);
+        $outputter->printTopN($results);
         $output = ob_get_clean();
 
-        $this->assertStringContainsString('Top 20 Slowest Tests:', $output);
+        $this->assertStringContainsString('Top 20 Slowest Tests', $output);
         $this->assertStringContainsString('1.234s', $output);
         $this->assertStringContainsString('App\\Tests\\FooTest::test_slow', $output);
     }
@@ -35,7 +35,7 @@ class TestDurationOutputterTest extends TestCase
         $outputter = new TestDurationOutputter();
 
         ob_start();
-        $outputter->printTop20($results);
+        $outputter->printTopN($results);
         $output = ob_get_clean();
 
         $this->assertEmpty($output);
@@ -52,12 +52,31 @@ class TestDurationOutputterTest extends TestCase
         $outputter = new TestDurationOutputter();
 
         ob_start();
-        $outputter->printTop20($results);
+        $outputter->printTopN($results);
         $output = ob_get_clean();
 
         // Should contain rank 20 but not rank 21
         $this->assertStringContainsString('20.', $output);
         $this->assertStringNotContainsString('21.', $output);
+    }
+
+    public function test_print_topN_with_custom_count(): void
+    {
+        $items = [];
+        for ($i = 0; $i < 10; $i++) {
+            $items[] = new TestDurationResult("Test::test_{$i}", (float) $i);
+        }
+        $results = new TestDurationResultCollection(...$items);
+
+        $outputter = new TestDurationOutputter(5);
+
+        ob_start();
+        $outputter->printTopN($results);
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('Top 5 Slowest Tests:', $output);
+        $this->assertStringContainsString(' 5.', $output);
+        $this->assertStringNotContainsString(' 6.', $output);
     }
 
     public function test_print_pareto_shows_percentage(): void

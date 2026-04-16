@@ -23,7 +23,7 @@ class ExtensionIntegrationTest extends TestCase
         $fullOutput = implode("\n", $output);
 
         $this->assertSame(0, $exitCode, "PHPUnit failed:\n" . $fullOutput);
-        $this->assertStringContainsString('Top 20 Slowest Tests:', $fullOutput);
+        $this->assertStringContainsString('Top 20 Slowest Tests', $fullOutput);
         $this->assertStringContainsString('SampleTest::test_slow', $fullOutput);
         $this->assertStringContainsString('SampleTest::test_fast', $fullOutput);
     }

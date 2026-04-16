@@ -19,8 +19,14 @@ final class TestProfilerExtension implements Extension
 {
     public function bootstrap(Configuration $configuration, Facade $facade, ParameterCollection $parameters): void
     {
+        $topCount = $parameters->has('topCount')
+            ? (int) $parameters->get('topCount')
+            : null;
+
         $collector = new TestTimeCollector();
-        $outputter = new TestDurationOutputter();
+        $outputter = $topCount !== null
+            ? new TestDurationOutputter($topCount)
+            : new TestDurationOutputter();
 
         $facade->registerSubscribers(
             new class ($collector) implements PreparedSubscriber {
@@ -54,7 +60,7 @@ final class TestProfilerExtension implements Extension
                 public function notify(ExecutionFinished $event): void
                 {
                     $results = $this->collector->getResults();
-                    $this->outputter->printTop20($results);
+                    $this->outputter->printTopN($results);
                 }
             },
         );

@@ -6,15 +6,21 @@ namespace TakigawaAkinori\PhpunitProfiler;
 
 final class TestDurationOutputter
 {
-    public function printTop20(TestDurationResultCollection $results): void
+    private const DEFAULT_TOP_COUNT = 20;
+
+    public function __construct(
+        private readonly int $topCount = self::DEFAULT_TOP_COUNT,
+    ) {}
+
+    public function printTopN(TestDurationResultCollection $results): void
     {
         if ($results->isEmpty()) {
             return;
         }
 
-        $top = $results->top(20);
+        $top = $results->top($this->topCount);
 
-        echo PHP_EOL . 'Top 20 Slowest Tests:' . PHP_EOL;
+        echo PHP_EOL . sprintf('Top %d Slowest Tests:', $this->topCount) . PHP_EOL;
         echo str_repeat('-', 80) . PHP_EOL;
 
         $rank = 1;
