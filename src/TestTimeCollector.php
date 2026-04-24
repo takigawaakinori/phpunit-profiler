@@ -14,9 +14,16 @@ final class TestTimeCollector
     /** @var array<string, float> */
     private array $durations = [];
 
-    public function recordStart(string $testId, HRTime $time): void
+    /** @var array<string, string> */
+    private array $filePaths = [];
+
+    public function recordStart(string $testId, HRTime $time, ?string $filePath = null): void
     {
         $this->startTimes[$testId] = $time;
+
+        if ($filePath !== null) {
+            $this->filePaths[$testId] = $filePath;
+        }
     }
 
     public function recordEnd(string $testId, HRTime $time): void
@@ -38,7 +45,11 @@ final class TestTimeCollector
         $results = [];
 
         foreach ($this->durations as $testId => $seconds) {
-            $results[] = new TestDurationResult($testId, $seconds);
+            $results[] = new TestDurationResult(
+                $testId,
+                $seconds,
+                $this->filePaths[$testId] ?? null,
+            );
         }
 
         return new TestDurationResultCollection(...$results);
