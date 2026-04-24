@@ -28,9 +28,13 @@ final class TestProfilerExtension implements Extension
         $jsonOutput = $parameters->has('jsonOutput')
             ? $parameters->get('jsonOutput')
             : null;
+        $htmlOutput = $parameters->has('htmlOutput')
+            ? $parameters->get('htmlOutput')
+            : null;
 
         $collector = new TestTimeCollector();
         $jsonWriter = $jsonOutput !== null ? new JsonResultWriter($jsonOutput) : null;
+        $htmlWriter = $htmlOutput !== null ? new HtmlResultWriter($htmlOutput) : null;
         $outputter = new TestDurationOutputter(
             topCount: $topCount,
             showTopN: $showTopN,
@@ -47,6 +51,7 @@ final class TestProfilerExtension implements Extension
                     $this->collector->recordStart(
                         $event->test()->id(),
                         $event->telemetryInfo()->time(),
+                        $event->test()->file(),
                     );
                 }
             },
@@ -61,11 +66,12 @@ final class TestProfilerExtension implements Extension
                     );
                 }
             },
-            new class ($collector, $outputter, $jsonWriter) implements ExecutionFinishedSubscriber {
+            new class ($collector, $outputter, $jsonWriter, $htmlWriter) implements ExecutionFinishedSubscriber {
                 public function __construct(
                     private readonly TestTimeCollector $collector,
                     private readonly TestDurationOutputter $outputter,
                     private readonly ?JsonResultWriter $jsonWriter,
+                    private readonly ?HtmlResultWriter $htmlWriter,
                 ) {}
 
                 public function notify(ExecutionFinished $event): void
@@ -74,6 +80,7 @@ final class TestProfilerExtension implements Extension
                     $this->outputter->print($results);
 
                     $this->jsonWriter?->write($results);
+                    $this->htmlWriter?->write($results);
                 }
             },
         );
